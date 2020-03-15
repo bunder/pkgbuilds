@@ -1,0 +1,17 @@
+pkgbase = perl-www-shorten
+	pkgdesc = Interface to URL shortening sites
+	pkgver = 3.093
+	pkgrel = 2
+	url = https://metacpan.org/release/WWW-Shorten
+	arch = any
+	license = PerlArtistic
+	license = GPL
+	depends = perl-libwww
+	depends = perl-try-tiny
+	optdepends = perl-config-auto: for configuration file support
+	options = !emptydirs
+	source = http://search.cpan.org/CPAN/authors/id/C/CA/CAPOEIRAB/WWW-Shorten-3.093.tar.gz
+	md5sums = 44bfbdd42ed459bf1e87291202ed35cf
+
+pkgname = perl-www-shorten
+
