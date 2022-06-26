@@ -1,0 +1,65 @@
+name: Publish
+
+on:
+  push:
+    branches: [ master ]
+    paths-ignore: [ '.github/**', 'README.rst' ]
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: Publish PKGBUILDs to AUR
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v23
+        with:
+          since_last_remote_commit: true
+
+      - name: Get changed packages
+        id: packages
+        run: |
+          declare -A PACKAGES
+          for f in ${{ steps.changed-files.outputs.all_changed_files }}; do
+              # Ignore dirs starting with dot, like .github
+              [[ "$f" =~ ^\. ]] && continue
+              [[ "$f" =~ .*/ && -d "${BASH_REMATCH[0]}" ]] && PACKAGES["${BASH_REMATCH[0]}"]=1
+          done
+          echo "::set-output name=packages::${!PACKAGES[*]}"
+          echo "Changed packages: ${!PACKAGES[*]}"
+
+      - name: Install aurpublish
+        if: steps.packages.outputs.packages != ''
+        run: |
+          curl --output /usr/local/bin/aurpublish \
+              https://raw.githubusercontent.com/eli-schwartz/aurpublish/f88c7aea4506f9f2abde4ea91d0fdacdce4ffdb7/aurpublish.in
+          chmod a-w,+x /usr/local/bin/aurpublish
+
+      - name: Set up SSH key
+        if: steps.packages.outputs.packages != ''
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.AUR_KEY }}
+          known_hosts: >
+            aur.archlinux.org ssh-ed25519
+            AAAAC3NzaC1lZDI1NTE5AAAAIEuBKrPzbawxA/k2g6NcyV5jmqwJ2s+zpgZGZ7tpLIcN
+          config: |
+            Host aur aur.archlinux.org
+              User aur
+              Hostname aur.archlinux.org
+
+      - name: Run aurpublish
+        if: steps.packages.outputs.packages != ''
+        run: |
+          for p in ${{ steps.packages.outputs.packages }}; do
+              aurpublish $p;
+          done
