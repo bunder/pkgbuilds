@@ -34,7 +34,7 @@ jobs:
               [[ "$f" =~ ^\. ]] && continue
               [[ "$f" =~ .*/ && -d "${BASH_REMATCH[0]}" ]] && PACKAGES["${BASH_REMATCH[0]}"]=1
           done
-          echo "::set-output name=packages::${!PACKAGES[*]}"
+          echo "packages=${!PACKAGES[*]}" >> $GITHUB_OUTPUT
           echo "Changed packages: ${!PACKAGES[*]}"
 
       - name: Install aurpublish
